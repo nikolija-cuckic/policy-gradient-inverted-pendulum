@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+.eggs/
+.pdf
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# PyTorch checkpoints (opciono - zakomentiši ako hoćeš da pushuješ modele)
+checkpoints/
+checkpoints_v4/
+checkpoints_v5/
+
+# Logs i rezultati (zakomentiši ako hoćeš da pushuješ CSV-ove)
+logs/
+logs_v4/
+logs_v5/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# Video fajlovi (mogu biti veliki)
+logs/*.mp4
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.code-workspace
+
+# MuJoCo
+~/.mujoco/
+
+SKILL.md
