@@ -8,7 +8,9 @@ __pycache__/
 dist/
 build/
 .eggs/
-.pdf
+*.tex
+*.pdf
+
 
 # Virtual environment
 .venv/
@@ -31,6 +33,7 @@ logs_v5/
 
 # Video fajlovi (mogu biti veliki)
 logs/*.mp4
+videos/*.mp4
 
 # OS
 .DS_Store

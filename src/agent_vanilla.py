@@ -19,18 +19,16 @@ class VanillaREINFORCE:
         return action.detach().numpy()
 
     def update(self):
-        """Ažuriranje po formuli: ∇J ≈ Σ G_t * ∇log π(a|s)"""
+        # REINFORCE update: theta <- theta + alpha * G_t * grad log pi(a|s)
         R = 0
         returns = []
-        # Računamo G_t unazad
         for r in self.rewards[::-1]:
             R = r + self.gamma * R
             returns.insert(0, R)
-        
-        returns = torch.tensor(returns)
-        log_probs = torch.stack(self.log_probs).squeeze() # ako je dimenzija problem
 
-        # GUBITAK: minus log_prob * return
+        returns = torch.tensor(returns)
+        log_probs = torch.stack(self.log_probs).squeeze()
+
         loss = -torch.sum(log_probs * returns)
 
         self.optimizer.zero_grad()
