@@ -40,13 +40,13 @@ class REINFORCEWithBaseline:
         states_tensor = torch.stack(self.states)
         values = self.value_net(states_tensor).squeeze()
 
-        # Step 1: update value network to minimize squared error (V(s) -> G_t)
+        # update value network to minimize  error (V(s) -> G_t)
         value_loss = F.mse_loss(values, returns)
         self.value_optim.zero_grad()
         value_loss.backward()
         self.value_optim.step()
 
-        # Step 2: update policy network using advantage = G_t - V(s)
+        # update policy network using advantage = G_t - V(s)
         with torch.no_grad():
             values = self.value_net(states_tensor).squeeze()
 
