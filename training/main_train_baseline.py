@@ -5,7 +5,7 @@ from tqdm import tqdm
 from src.agent_baseline import REINFORCEWithBaseline
 from src.utils import set_seed, save_results_to_csv
 
-# Use half the available CPU cores for PyTorch and MKL thread pools
+# half the available CPU cores for PyTorch and MKL thread pools
 num_cores = os.cpu_count() // 2
 os.environ["OMP_NUM_THREADS"] = str(num_cores)
 os.environ["MKL_NUM_THREADS"] = str(num_cores)

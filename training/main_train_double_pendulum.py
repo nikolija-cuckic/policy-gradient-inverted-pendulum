@@ -6,7 +6,7 @@ from tqdm import tqdm
 from src.agent_baseline import REINFORCEWithBaseline
 from src.utils import set_seed, save_results_to_csv
 
-# Use half the available CPU cores for PyTorch and MKL thread pools
+# half the available CPU cores for PyTorch and MKL thread pools
 num_cores = os.cpu_count() // 2
 os.environ["OMP_NUM_THREADS"] = str(num_cores)
 os.environ["MKL_NUM_THREADS"] = str(num_cores)
@@ -47,7 +47,6 @@ def train_double_pendulum(seed=1, total_episodes=5000):
         if (episode + 1) % 1000 == 0:
             agent.save(f"checkpoints/double_pendulum_seed{seed}_ep{episode+1}.pth")
 
-    # Save final model and reward log
     agent.save(f"checkpoints/double_pendulum_seed{seed}.pth")
     save_results_to_csv(rewards_history, f"logs/double_pendulum_seed{seed}.csv")
     print(f"Training complete. Results in logs/double_pendulum_seed{seed}.csv")
