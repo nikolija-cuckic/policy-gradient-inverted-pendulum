@@ -1,11 +1,11 @@
 """
 generate_plots.py
 -----------------
-Generates all analysis plots from CSV logs in logs/ and saves them to plots/.
+Generates all analysis plots from CSV logs and saves them to plots/.
 
 Plots produced:
   01_vanilla_learning_curves.png      - per-seed reward curves for Vanilla REINFORCE
-  02_baseline_learning_curves.png     - per-seed reward curves for REINFORCE+Baseline
+  02_baseline_learning_curves.png     - per-seed reward curves for REINFORCE+baseline
   03_vanilla_vs_baseline.png          - mean ± std comparison of both algorithms
   04_variance_comparison.png          - variability (std) across seeds, by algorithm
   05_final_performance_bar.png        - bar chart: mean reward in last 500 ep per model
@@ -24,7 +24,7 @@ import matplotlib.gridspec as gridspec
 from matplotlib.ticker import MaxNLocator
 import seaborn as sns
 
-# ── Style ──────────────────────────────────────────────────────────────────────
+#  style
 sns.set_theme(style="darkgrid", palette="tab10")
 plt.rcParams.update({
     "figure.dpi": 150,
@@ -43,7 +43,7 @@ os.makedirs(PLOTS_DIR, exist_ok=True)
 WINDOW = 100   # smoothing window (episodes)
 
 
-# ── I/O helpers ────────────────────────────────────────────────────────────────
+#  I/O helpers 
 
 def load_csv(filename: str) -> pd.Series:
     path = os.path.join(LOGS_DIR, filename)
@@ -82,7 +82,7 @@ def save_fig(fig, name: str):
     print(f"  Saved: {path}")
 
 
-# ── Plot 1: Vanilla per-seed learning curves ────────────────────────────────────
+# vanilla learning curves
 
 def plot_vanilla_seeds():
     series = load_seeds("vanilla")
@@ -92,7 +92,7 @@ def plot_vanilla_seeds():
     colors = sns.color_palette("Blues_d", len(series))
     for i, (s, c) in enumerate(zip(series, colors), start=1):
         ax.plot(smooth(s), label=f"Seed {i}", color=c, linewidth=1.8)
-    ax.set_title("Vanilla REINFORCE – Learning Curves (3 seeds)")
+    ax.set_title("Vanilla REINFORCE - Learning Curves (3 seeds)")
     ax.set_xlabel("Episode")
     ax.set_ylabel(f"Reward (smoothed, w={WINDOW})")
     ax.axhline(1000, color="black", linestyle="--", linewidth=1, label="Max reward (1000)")
@@ -100,7 +100,7 @@ def plot_vanilla_seeds():
     save_fig(fig, "01_vanilla_learning_curves.png")
 
 
-# ── Plot 2: Baseline per-seed learning curves ───────────────────────────────────
+# baseline learning curves 
 
 def plot_baseline_seeds():
     series = load_seeds("baseline")
@@ -110,7 +110,7 @@ def plot_baseline_seeds():
     colors = sns.color_palette("Greens_d", len(series))
     for i, (s, c) in enumerate(zip(series, colors), start=1):
         ax.plot(smooth(s), label=f"Seed {i}", color=c, linewidth=1.8)
-    ax.set_title("REINFORCE + Baseline – Learning Curves (3 seeds)")
+    ax.set_title("REINFORCE + Baseline - Learning Curves (3 seeds)")
     ax.set_xlabel("Episode")
     ax.set_ylabel(f"Reward (smoothed, w={WINDOW})")
     ax.axhline(1000, color="black", linestyle="--", linewidth=1, label="Max reward (1000)")
@@ -118,7 +118,7 @@ def plot_baseline_seeds():
     save_fig(fig, "02_baseline_learning_curves.png")
 
 
-# ── Plot 3: Vanilla vs Baseline mean±std ────────────────────────────────────────
+# vanilla vs baseline
 
 def plot_vanilla_vs_baseline():
     v_series = load_seeds("vanilla")
@@ -145,7 +145,7 @@ def plot_vanilla_vs_baseline():
     save_fig(fig, "03_vanilla_vs_baseline.png")
 
 
-# ── Plot 4: Variance comparison (rolling std) ───────────────────────────────────
+# variance comparison (rolling std)
 
 def plot_variance_comparison():
     v_series = load_seeds("vanilla")
@@ -170,7 +170,7 @@ def plot_variance_comparison():
     save_fig(fig, "04_variance_comparison.png")
 
 
-# ── Plot 5: Final performance bar chart ─────────────────────────────────────────
+#  final performance chart 
 
 def plot_final_performance(last_n: int = 500):
     entries = [
@@ -203,7 +203,7 @@ def plot_final_performance(last_n: int = 500):
                   edgecolor="white", linewidth=0.8, width=0.6)
     ax.axhline(1000, color="black", linestyle="--", linewidth=1, label="Max reward")
 
-    # Value annotations
+    # value annotations
     for bar, m in zip(bars, means):
         ax.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 10,
                 f"{m:.0f}", ha="center", va="bottom", fontsize=9)
@@ -222,7 +222,7 @@ def plot_final_performance(last_n: int = 500):
     save_fig(fig, "05_final_performance_bar.png")
 
 
-# ── Plot 6: Double Pendulum training curve ──────────────────────────────────────
+# Double Pendulum training curve
 
 def plot_double_pendulum():
     fpath = os.path.join(LOGS_DIR, "double_pendulum_seed3.csv")
@@ -232,14 +232,14 @@ def plot_double_pendulum():
     s = load_csv("double_pendulum_seed3.csv")
     fig, ax = plt.subplots(figsize=(10, 5))
     ax.plot(smooth(s).values, color="#9467BD", linewidth=2.2, label=f"Smoothed (w={WINDOW})")
-    ax.set_title("InvertedDoublePendulum-v5 – Training from Scratch")
+    ax.set_title("InvertedDoublePendulum-v5 - Training from Scratch")
     ax.set_xlabel("Episode")
     ax.set_ylabel("Episode Reward")
     ax.legend()
     save_fig(fig, "06_double_pendulum_curve.png")
 
 
-# ── Plot 7: Transfer Learning vs Scratch ────────────────────────────────────────
+# transfer Learning vs Scratch
 
 def plot_transfer_vs_scratch():
     scratch_path   = os.path.join(LOGS_DIR, "double_pendulum_seed3.csv")
@@ -252,7 +252,7 @@ def plot_transfer_vs_scratch():
     fig, ax = plt.subplots(figsize=(11, 5))
 
     for fname, label, color in [
-        ("double_pendulum_seed3.csv",   "Scratch – seed3 (InvertedDoublePendulum)", "#9467BD"),
+        ("double_pendulum_seed3.csv",   "Scratch - seed3 (InvertedDoublePendulum)", "#9467BD"),
         ("transfer_learning_seed3.csv", "Transfer Learning (from SP → DP)",         "#D62728"),
     ]:
         fpath = os.path.join(LOGS_DIR, fname)
@@ -268,7 +268,7 @@ def plot_transfer_vs_scratch():
     save_fig(fig, "07_transfer_vs_scratch.png")
 
 
-# ── Plot 8: 2x3 seed grid ───────────────────────────────────────────────────────
+# 2x3 seed grid 
 
 def plot_all_seeds_grid():
     v_series = load_seeds("vanilla")
@@ -304,7 +304,7 @@ def plot_all_seeds_grid():
     save_fig(fig, "08_all_seeds_grid.png")
 
 
-# ── Plot 9: Reward distribution violin ──────────────────────────────────────────
+# reward distribution
 
 def plot_reward_distribution():
     entries = {
@@ -344,7 +344,7 @@ def plot_reward_distribution():
     save_fig(fig, "09_reward_distribution.png")
 
 
-# ── Plot 10: Convergence speed ──────────────────────────────────────────────────
+# convergence speed
 
 def plot_convergence_speed(threshold: float = 0.9):
     """Episode at which smoothed reward first reaches threshold * 1000."""
@@ -394,7 +394,7 @@ def plot_convergence_speed(threshold: float = 0.9):
     save_fig(fig, "10_convergence_speed.png")
 
 
-# ── Main ────────────────────────────────────────────────────────────────────────
+# main 
 
 if __name__ == "__main__":
     print("Generating plots from logs/ ...\n")

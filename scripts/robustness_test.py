@@ -27,10 +27,10 @@ import seaborn as sns
 from src.agent_vanilla import VanillaREINFORCE
 from src.agent_baseline import REINFORCEWithBaseline
 
-# ── Config ────────────────────────────────────────────────────────────────────
+# configuration
 
-WIND_FORCES    = [0, 2, 4, 8]   # N, applied horizontally to cart
-N_EVAL_EPS     = 5              # episodes per wind level (for stats)
+WIND_FORCES    = [0, 2, 4, 8]   # N applied horizontally
+N_EVAL_EPS     = 5              # episodes per wind level
 VIDEOS_DIR     = "videos"
 PLOTS_DIR      = "plots"
 
@@ -40,7 +40,7 @@ os.makedirs(PLOTS_DIR, exist_ok=True)
 sns.set_style("whitegrid")
 
 
-# ── Load helpers ──────────────────────────────────────────────────────────────
+# load helpers 
 
 def load_vanilla(path: str, env_name: str) -> VanillaREINFORCE:
     env = gym.make(env_name)
@@ -60,7 +60,7 @@ def load_baseline(path: str, env_name: str) -> REINFORCEWithBaseline:
     return agent
 
 
-# ── Wind episode helpers ──────────────────────────────────────────────────────
+# wind episode helpers
 
 def record_with_wind(agent, env_name: str, wind: float,
                      max_steps: int = 500, seed: int = 42):
@@ -109,7 +109,7 @@ def eval_with_wind(agent, env_name: str, wind: float,
     return float(np.mean(rewards)), float(np.std(rewards))
 
 
-# ── Frame helpers ─────────────────────────────────────────────────────────────
+# frame helpers
 
 def add_label(frame: np.ndarray, label: str, subtitle: str = "") -> np.ndarray:
     img = Image.fromarray(frame)
@@ -140,12 +140,12 @@ def save_video(frames: list, path: str, fps: int = 30):
     print(f"  Saved: {path}  ({len(frames)} frames, {len(frames)/fps:.1f}s)")
 
 
-# ── 4-panel robustness video (2×2 grid) ──────────────────────────────────────
+# 4-panel robustness video (2×2) 
 
 def make_robustness_video(agent, env_name: str, agent_label: str,
                           output_filename: str, max_steps: int = 500):
     print(f"\n[{output_filename}] Recording {agent_label}...")
-    assert len(WIND_FORCES) == 4, "Expected exactly 4 wind levels for 2×2 grid"
+    assert len(WIND_FORCES) == 4, "Expected exactly 4 wind levels for 2x2 grid"
 
     all_frames = []
     for wind in WIND_FORCES:
@@ -167,7 +167,7 @@ def make_robustness_video(agent, env_name: str, agent_label: str,
     save_video(combined, os.path.join(VIDEOS_DIR, output_filename))
 
 
-# ── Robustness plot ───────────────────────────────────────────────────────────
+# robustness plot 
 
 def save_fig(fig, filename: str):
     path = os.path.join(PLOTS_DIR, filename)
@@ -201,11 +201,11 @@ def plot_robustness(results: list, title: str, filename: str):
     save_fig(fig, filename)
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
+# Main 
 
 if __name__ == "__main__":
 
-    # ── Single Pendulum ───────────────────────────────────────────────────────
+    # single pendulum
     print("\n=== Single Pendulum Robustness (seed 3) ===")
     ENV_SP = "InvertedPendulum-v5"
 
@@ -216,7 +216,7 @@ if __name__ == "__main__":
     make_robustness_video(vanilla_agent,  ENV_SP, "Vanilla REINFORCE",    "robustness_vanilla.mp4")
     make_robustness_video(baseline_agent, ENV_SP, "REINFORCE + Baseline", "robustness_baseline.mp4")
 
-    # Stats → plot
+    # stats -> plot
     sp_results = []
     for agent, label, color in [
         (vanilla_agent,  "Vanilla REINFORCE",    "#1F77B4"),
@@ -230,10 +230,10 @@ if __name__ == "__main__":
         sp_results.append({"label": label, "color": color, "means": means, "stds": stds})
 
     plot_robustness(sp_results,
-                    "Robustness to Wind – Single Pendulum (seed 3)",
+                    "Robustness to Wind - Single Pendulum (seed 3)",
                     "09_robustness_single_pendulum.png")
 
-    # ── Double Pendulum ───────────────────────────────────────────────────────
+    # double pendulum
     print("\n=== Double Pendulum Robustness (seed 3) ===")
     ENV_DP = "InvertedDoublePendulum-v5"
 
@@ -255,7 +255,7 @@ if __name__ == "__main__":
         # 4-panel video
         make_robustness_video(agent, ENV_DP, label, vid_name, max_steps=1000)
 
-        # Stats
+        # statistics
         means, stds = [], []
         for wind in WIND_FORCES:
             m, s = eval_with_wind(agent, ENV_DP, wind, N_EVAL_EPS, max_steps=1000)
@@ -265,7 +265,7 @@ if __name__ == "__main__":
 
     if dp_results:
         plot_robustness(dp_results,
-                        "Robustness to Wind – Double Pendulum (seed 3)",
+                        "Robustness to Wind - Double Pendulum (seed 3)",
                         "10_robustness_double_pendulum.png")
 
     print("\nDone! Check videos/ and plots/ directories.")

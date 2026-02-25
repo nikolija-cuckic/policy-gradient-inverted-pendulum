@@ -26,9 +26,7 @@ OUTPUT_DIR = "videos"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 
-# ---------------------------------------------------------------------------
 # Helpers
-# ---------------------------------------------------------------------------
 
 def load_vanilla(checkpoint_path: str, env_name: str = "InvertedPendulum-v5") -> VanillaREINFORCE:
     env = gym.make(env_name)
@@ -49,7 +47,6 @@ def load_baseline(checkpoint_path: str, env_name: str = "InvertedPendulum-v5") -
 
 
 def record_episode(agent, env_name: str, max_steps: int = 500, seed: int = 42) -> list:
-    """Run one episode and collect RGB frames. Agent must NOT be in training mode."""
     env = gym.make(env_name, render_mode="rgb_array")
     frames = []
     state, _ = env.reset(seed=seed)
@@ -67,7 +64,6 @@ def record_episode(agent, env_name: str, max_steps: int = 500, seed: int = 42) -
 
 
 def add_label(frame: np.ndarray, label: str, subtitle: str = "") -> np.ndarray:
-    """Burn a text label onto a frame using PIL."""
     img = Image.fromarray(frame)
     draw = ImageDraw.Draw(img)
 
@@ -78,7 +74,7 @@ def add_label(frame: np.ndarray, label: str, subtitle: str = "") -> np.ndarray:
         font_main = ImageFont.load_default()
         font_sub  = font_main
 
-    # Dark background strip at top
+    # dark background strip at top
     draw.rectangle([0, 0, img.width, 30], fill=(0, 0, 0, 200))
     draw.text((8, 6), label, fill=(255, 255, 255), font=font_main)
     if subtitle:
@@ -88,7 +84,6 @@ def add_label(frame: np.ndarray, label: str, subtitle: str = "") -> np.ndarray:
 
 
 def pad_frames(frames_list: list) -> list:
-    """Pad shorter episode sequences by repeating the last frame."""
     max_len = max(len(f) for f in frames_list)
     padded = []
     for frames in frames_list:
@@ -103,9 +98,7 @@ def save_video(frames: list, path: str, fps: int = 30):
     print(f"  Saved: {path}  ({len(frames)} frames, {len(frames)/fps:.1f}s)")
 
 
-# ---------------------------------------------------------------------------
-# Video 1 & 2: Training-phase comparisons (3-panel, single environment)
-# ---------------------------------------------------------------------------
+# training phase comparisons
 
 def make_phase_video(
     load_fn,
@@ -116,7 +109,7 @@ def make_phase_video(
     max_steps: int = 500,
 ):
     """
-    Creates a side-by-side (N-panel) video showing different training phases.
+    Creates a side by side video showing different training phases.
 
     Args:
         load_fn: function(path, env_name) -> agent
@@ -132,7 +125,7 @@ def make_phase_video(
     for path, label in zip(checkpoints, labels):
         if not os.path.exists(path):
             print(f"  SKIP (not found): {path}")
-            # Substitute blank frames so the video still renders
+            # substitute blank frames to render the video
             dummy = np.zeros((480, 640, 3), dtype=np.uint8)
             all_frames.append([dummy] * 60)
             continue
@@ -152,9 +145,7 @@ def make_phase_video(
     save_video(combined, os.path.join(OUTPUT_DIR, output_filename))
 
 
-# ---------------------------------------------------------------------------
-# Video 3: Vanilla vs Baseline (2-panel)
-# ---------------------------------------------------------------------------
+# vanilla vs baseline
 
 def make_vanilla_vs_baseline_video():
     print("\n[vanilla_vs_baseline.mp4] Recording...")
@@ -185,9 +176,7 @@ def make_vanilla_vs_baseline_video():
     save_video(combined, os.path.join(OUTPUT_DIR, "vanilla_vs_baseline.mp4"))
 
 
-# ---------------------------------------------------------------------------
-# Video 4: Double Pendulum (single panel)
-# ---------------------------------------------------------------------------
+# double pendulum
 
 def make_double_pendulum_video():
     print("\n[double_pendulum.mp4] Recording...")
@@ -209,13 +198,11 @@ def make_double_pendulum_video():
     env.close()
 
     frames = record_episode(agent, env_name, max_steps=1000)
-    frames = [add_label(f, "Double Pendulum – Trained from Scratch (ep10000)", "InvertedDoublePendulum-v5") for f in frames]
+    frames = [add_label(f, "Double Pendulum - Trained from Scratch (ep10000)", "InvertedDoublePendulum-v5") for f in frames]
     save_video(frames, os.path.join(OUTPUT_DIR, "double_pendulum.mp4"))
 
 
-# ---------------------------------------------------------------------------
-# Video 5: Transfer Learning vs Scratch (2-panel, double pendulum)
-# ---------------------------------------------------------------------------
+# transfer learning vs scratch
 
 def make_transfer_vs_scratch_video():
     print("\n[transfer_vs_scratch.mp4] Recording...")
@@ -224,7 +211,7 @@ def make_transfer_vs_scratch_video():
     transfer_path = "checkpoints/transfer_seed3.pth"
     scratch_path  = "checkpoints/double_pendulum_seed3_ep10000.pth"
 
-    labels = ["Transfer Learning – seed3 (ep10000)", "From Scratch – seed3 (ep10000)"]
+    labels = ["Transfer Learning - seed3 (ep10000)", "From Scratch - seed3 (ep10000)"]
     paths  = [transfer_path, scratch_path]
 
     all_frames = []
@@ -250,12 +237,10 @@ def make_transfer_vs_scratch_video():
     save_video(combined, os.path.join(OUTPUT_DIR, "transfer_vs_scratch.mp4"))
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
+# main
 
 if __name__ == "__main__":
-    # --- Video 1: Baseline training phases ---
+    # baseline training phases
     make_phase_video(
         load_fn=load_baseline,
         checkpoints=[
@@ -264,15 +249,15 @@ if __name__ == "__main__":
             "checkpoints/baseline_seed1_ep5000.pth",
         ],
         labels=[
-            "Baseline – ep1000 (early)",
-            "Baseline – ep3000 (mid)",
-            "Baseline – ep5000 (final)",
+            "Baseline - ep1000 (early)",
+            "Baseline - ep3000 (mid)",
+            "Baseline - ep5000 (final)",
         ],
         env_name="InvertedPendulum-v5",
         output_filename="baseline_phases.mp4",
     )
 
-    # --- Video 2: Vanilla training phases ---
+    # vanilla training phases
     make_phase_video(
         load_fn=load_vanilla,
         checkpoints=[
@@ -281,21 +266,21 @@ if __name__ == "__main__":
             "checkpoints/vanilla_seed1_ep5000.pth",
         ],
         labels=[
-            "Vanilla – ep1000 (early)",
-            "Vanilla – ep3000 (mid)",
-            "Vanilla – ep5000 (final)",
+            "Vanilla - ep1000 (early)",
+            "Vanilla - ep3000 (mid)",
+            "Vanilla - ep5000 (final)",
         ],
         env_name="InvertedPendulum-v5",
         output_filename="vanilla_phases.mp4",
     )
 
-    # --- Video 3: Vanilla vs Baseline ---
+    # vanilla vs baseline
     make_vanilla_vs_baseline_video()
 
-    # --- Video 4: Double Pendulum ---
+    # double pendulum
     make_double_pendulum_video()
 
-    # --- Video 5: Transfer vs Scratch ---
+    # transfer vs scratch
     make_transfer_vs_scratch_video()
 
     print("\nDone! All videos saved to:", OUTPUT_DIR)
