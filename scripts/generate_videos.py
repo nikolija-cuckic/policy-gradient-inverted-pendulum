@@ -1,17 +1,3 @@
-"""
-generate_videos.py
-------------------
-Generates all MP4 videos for the RL exam project:
-  - baseline_phases.mp4         : baseline agent at ep1000, ep3000, ep5000 (3-panel)
-  - vanilla_phases.mp4          : vanilla agent at ep1000, ep3000, ep5000 (3-panel)
-  - vanilla_vs_baseline.mp4     : vanilla vs baseline final models (2-panel)
-  - double_pendulum.mp4         : double pendulum trained agent (single panel)
-  - transfer_vs_scratch.mp4     : transfer learning vs scratch on double pendulum (2-panel)
-
-Requirements:
-  pip install imageio[ffmpeg] pillow
-"""
-
 import os
 import numpy as np
 import torch
@@ -25,16 +11,12 @@ from src.agent_baseline import REINFORCEWithBaseline
 OUTPUT_DIR = "videos"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-
-# Helpers
-
 def load_vanilla(checkpoint_path: str, env_name: str = "InvertedPendulum-v5") -> VanillaREINFORCE:
     env = gym.make(env_name)
     agent = VanillaREINFORCE(env.observation_space.shape[0], env.action_space.shape[0])
     agent.policy_net.load_state_dict(torch.load(checkpoint_path, map_location="cpu"))
     env.close()
     return agent
-
 
 def load_baseline(checkpoint_path: str, env_name: str = "InvertedPendulum-v5") -> REINFORCEWithBaseline:
     env = gym.make(env_name)
@@ -44,7 +26,6 @@ def load_baseline(checkpoint_path: str, env_name: str = "InvertedPendulum-v5") -
     agent.value_net.load_state_dict(ckpt["value"])
     env.close()
     return agent
-
 
 def record_episode(agent, env_name: str, max_steps: int = 500, seed: int = 42) -> list:
     env = gym.make(env_name, render_mode="rgb_array")
@@ -62,11 +43,9 @@ def record_episode(agent, env_name: str, max_steps: int = 500, seed: int = 42) -
     env.close()
     return frames
 
-
 def add_label(frame: np.ndarray, label: str, subtitle: str = "") -> np.ndarray:
     img = Image.fromarray(frame)
     draw = ImageDraw.Draw(img)
-
     try:
         font_main = ImageFont.truetype("arial.ttf", 18)
         font_sub  = ImageFont.truetype("arial.ttf", 13)
@@ -82,7 +61,6 @@ def add_label(frame: np.ndarray, label: str, subtitle: str = "") -> np.ndarray:
         draw.text((8, img.height - 18), subtitle, fill=(200, 200, 200), font=font_sub)
     return np.array(img)
 
-
 def pad_frames(frames_list: list) -> list:
     max_len = max(len(f) for f in frames_list)
     padded = []
@@ -92,13 +70,9 @@ def pad_frames(frames_list: list) -> list:
         padded.append(frames)
     return padded
 
-
 def save_video(frames: list, path: str, fps: int = 30):
     imageio.mimsave(path, frames, fps=fps)
     print(f"  Saved: {path}  ({len(frames)} frames, {len(frames)/fps:.1f}s)")
-
-
-# training phase comparisons
 
 def make_phase_video(
     load_fn,
@@ -108,17 +82,6 @@ def make_phase_video(
     output_filename: str,
     max_steps: int = 500,
 ):
-    """
-    Creates a side by side video showing different training phases.
-
-    Args:
-        load_fn: function(path, env_name) -> agent
-        checkpoints: list of .pth paths
-        labels: list of label strings (same length as checkpoints)
-        env_name: gymnasium env name
-        output_filename: output .mp4 filename (inside OUTPUT_DIR)
-        max_steps: max steps per recorded episode
-    """
     print(f"\n[{output_filename}] Recording {len(checkpoints)} phases...")
 
     all_frames = []
@@ -143,9 +106,6 @@ def make_phase_video(
         combined.append(row)
 
     save_video(combined, os.path.join(OUTPUT_DIR, output_filename))
-
-
-# vanilla vs baseline
 
 def make_vanilla_vs_baseline_video():
     print("\n[vanilla_vs_baseline.mp4] Recording...")
@@ -175,21 +135,15 @@ def make_vanilla_vs_baseline_video():
     combined = [np.hstack(list(sf)) for sf in zip(*all_frames)]
     save_video(combined, os.path.join(OUTPUT_DIR, "vanilla_vs_baseline.mp4"))
 
-
-# double pendulum
-
 def make_double_pendulum_video():
     print("\n[double_pendulum.mp4] Recording...")
     env_name = "InvertedDoublePendulum-v5"
     path = "checkpoints/double_pendulum_seed3_ep10000.pth"
-
     if not os.path.exists(path):
         path = "checkpoints/double_pendulum_seed3.pth"
-
     if not os.path.exists(path):
         print(f"  SKIP: no double pendulum checkpoint found.")
         return
-
     env = gym.make(env_name)
     agent = REINFORCEWithBaseline(env.observation_space.shape[0], env.action_space.shape[0])
     ckpt = torch.load(path, map_location="cpu")
@@ -200,9 +154,6 @@ def make_double_pendulum_video():
     frames = record_episode(agent, env_name, max_steps=1000)
     frames = [add_label(f, "Double Pendulum - Trained from Scratch (ep10000)", "InvertedDoublePendulum-v5") for f in frames]
     save_video(frames, os.path.join(OUTPUT_DIR, "double_pendulum.mp4"))
-
-
-# transfer learning vs scratch
 
 def make_transfer_vs_scratch_video():
     print("\n[transfer_vs_scratch.mp4] Recording...")
@@ -235,9 +186,6 @@ def make_transfer_vs_scratch_video():
     all_frames = pad_frames(all_frames)
     combined = [np.hstack(list(sf)) for sf in zip(*all_frames)]
     save_video(combined, os.path.join(OUTPUT_DIR, "transfer_vs_scratch.mp4"))
-
-
-# main
 
 if __name__ == "__main__":
     # baseline training phases
@@ -273,14 +221,8 @@ if __name__ == "__main__":
         env_name="InvertedPendulum-v5",
         output_filename="vanilla_phases.mp4",
     )
-
-    # vanilla vs baseline
     make_vanilla_vs_baseline_video()
-
-    # double pendulum
     make_double_pendulum_video()
-
-    # transfer vs scratch
     make_transfer_vs_scratch_video()
 
     print("\nDone! All videos saved to:", OUTPUT_DIR)

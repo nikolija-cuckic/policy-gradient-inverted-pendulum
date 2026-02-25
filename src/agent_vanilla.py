@@ -19,7 +19,7 @@ class VanillaREINFORCE:
         return action.detach().numpy()
 
     def update(self):
-        # REINFORCE update: theta <- theta + alpha * G_t * grad log pi(a|s)
+        # REINFORCE update: theta <- theta + alpha * G_t * grad log pi(a / s)
         R = 0
         returns = []
         for r in self.rewards[::-1]:

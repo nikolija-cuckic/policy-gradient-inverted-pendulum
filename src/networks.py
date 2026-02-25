@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 
 class PolicyNetwork(nn.Module):
-    """Outputs mean and std of a Gaussian distribution over actions."""
     def __init__(self, obs_space_dims, action_space_dims):
         super().__init__()
         hidden_space1 = 16
@@ -20,13 +19,13 @@ class PolicyNetwork(nn.Module):
     def forward(self, x):
         shared_features = self.shared_net(x.float())
         action_means    = self.policy_mean_net(shared_features)
-        # Softplus ensures std is always positive
+        # std is always positive
         action_stddevs  = torch.log(1 + torch.exp(self.policy_stddev_net(shared_features)))
         return action_means, action_stddevs
 
 
 class ValueNetwork(nn.Module):
-    """Estimates the state value V(s) used as the REINFORCE baseline."""
+    # estimates V(s) used as REINFORCE baseline
     def __init__(self, obs_space_dims):
         super().__init__()
         hidden_space1 = 32

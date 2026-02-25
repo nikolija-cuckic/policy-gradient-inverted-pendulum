@@ -10,12 +10,12 @@ class REINFORCEWithBaseline:
         self.value_net  = ValueNetwork(obs_dims)
 
         self.policy_optim = torch.optim.AdamW(self.policy_net.parameters(), lr=lr)
-        self.value_optim  = torch.optim.AdamW(self.value_net.parameters(),  lr=1e-3)
+        self.value_optim = torch.optim.AdamW(self.value_net.parameters(),  lr=1e-3)
 
-        self.gamma     = gamma
+        self.gamma = gamma
         self.log_probs = []
-        self.rewards   = []
-        self.states    = []
+        self.rewards = []
+        self.states = []
 
     def sample_action(self, state):
         state_t = torch.tensor(np.array([state])).float()
@@ -29,7 +29,7 @@ class REINFORCEWithBaseline:
         return action.detach().numpy().flatten()
 
     def update(self):
-        # REINFORCE with baseline: theta <- theta + alpha * (G_t - V(s)) * grad log pi(a|s)
+        # REINFORCE with baseline: theta <- theta + alpha * (G_t - V(s)) * grad log pi(a / s)
         R = 0
         returns = []
         for r in self.rewards[::-1]:

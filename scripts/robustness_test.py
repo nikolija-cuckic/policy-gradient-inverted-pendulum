@@ -1,20 +1,3 @@
-"""
-robustness_test.py
-------------------
-Tests robustness of trained agents against external horizontal wind forces.
-
-Generates:
-  Video (single pendulum):
-    - robustness_vanilla.mp4      : Vanilla REINFORCE, 4 panels (wind 0,2,4,8 N)
-    - robustness_baseline.mp4     : REINFORCE+Baseline, 4 panels
-  Video (double pendulum):
-    - robustness_dp_scratch.mp4   : Scratch seed3, 4 panels
-    - robustness_dp_transfer.mp4  : Transfer seed3, 4 panels
-  Plots:
-    - 09_robustness_single_pendulum.png
-    - 10_robustness_double_pendulum.png
-"""
-
 import os
 import numpy as np
 import torch
@@ -27,9 +10,7 @@ import seaborn as sns
 from src.agent_vanilla import VanillaREINFORCE
 from src.agent_baseline import REINFORCEWithBaseline
 
-# configuration
-
-WIND_FORCES    = [0, 2, 4, 8]   # N applied horizontally
+WIND_FORCES    = [0, 2, 4, 8]   # Newtons applied horizontally
 N_EVAL_EPS     = 5              # episodes per wind level
 VIDEOS_DIR     = "videos"
 PLOTS_DIR      = "plots"
@@ -39,16 +20,12 @@ os.makedirs(PLOTS_DIR, exist_ok=True)
 
 sns.set_style("whitegrid")
 
-
-# load helpers 
-
 def load_vanilla(path: str, env_name: str) -> VanillaREINFORCE:
     env = gym.make(env_name)
     agent = VanillaREINFORCE(env.observation_space.shape[0], env.action_space.shape[0])
     agent.policy_net.load_state_dict(torch.load(path, map_location="cpu"))
     env.close()
     return agent
-
 
 def load_baseline(path: str, env_name: str) -> REINFORCEWithBaseline:
     env = gym.make(env_name)
@@ -59,12 +36,8 @@ def load_baseline(path: str, env_name: str) -> REINFORCEWithBaseline:
     env.close()
     return agent
 
-
-# wind episode helpers
-
 def record_with_wind(agent, env_name: str, wind: float,
                      max_steps: int = 500, seed: int = 42):
-    """Record one episode with constant horizontal wind. Returns (frames, total_reward)."""
     env = gym.make(env_name, render_mode="rgb_array")
     frames = []
     state, _ = env.reset(seed=seed)
@@ -80,17 +53,13 @@ def record_with_wind(agent, env_name: str, wind: float,
         total += reward
         done = terminated or truncated
         steps += 1
-
     env.close()
     return frames, total
 
-
 def eval_with_wind(agent, env_name: str, wind: float,
                    n_episodes: int = 5, max_steps: int = 1000):
-    """Evaluate over n_episodes. Returns (mean_reward, std_reward)."""
     env = gym.make(env_name)
     rewards = []
-
     for ep in range(n_episodes):
         state, _ = env.reset(seed=ep)
         done, steps, total = False, 0, 0.0
@@ -104,12 +73,8 @@ def eval_with_wind(agent, env_name: str, wind: float,
             done = terminated or truncated
             steps += 1
         rewards.append(total)
-
     env.close()
     return float(np.mean(rewards)), float(np.std(rewards))
-
-
-# frame helpers
 
 def add_label(frame: np.ndarray, label: str, subtitle: str = "") -> np.ndarray:
     img = Image.fromarray(frame)
@@ -126,7 +91,6 @@ def add_label(frame: np.ndarray, label: str, subtitle: str = "") -> np.ndarray:
         draw.text((8, img.height - 18), subtitle, fill=(200, 200, 200), font=font_sub)
     return np.array(img)
 
-
 def pad_frames(frames_list: list) -> list:
     max_len = max(len(f) for f in frames_list)
     return [
@@ -134,13 +98,9 @@ def pad_frames(frames_list: list) -> list:
         for f in frames_list
     ]
 
-
 def save_video(frames: list, path: str, fps: int = 30):
     imageio.mimsave(path, frames, fps=fps)
     print(f"  Saved: {path}  ({len(frames)} frames, {len(frames)/fps:.1f}s)")
-
-
-# 4-panel robustness video (2×2) 
 
 def make_robustness_video(agent, env_name: str, agent_label: str,
                           output_filename: str, max_steps: int = 500):
@@ -157,7 +117,6 @@ def make_robustness_video(agent, env_name: str, agent_label: str,
         print(f"  wind={wind}N → {len(frames)} frames, reward={reward:.0f}")
 
     all_frames = pad_frames(all_frames)
-
     combined = []
     for f0, f1, f2, f3 in zip(*all_frames):
         top = np.hstack([f0, f1])
@@ -166,25 +125,15 @@ def make_robustness_video(agent, env_name: str, agent_label: str,
 
     save_video(combined, os.path.join(VIDEOS_DIR, output_filename))
 
-
-# robustness plot 
-
 def save_fig(fig, filename: str):
     path = os.path.join(PLOTS_DIR, filename)
     fig.savefig(path, dpi=150, bbox_inches="tight")
     plt.close(fig)
     print(f"  Saved: {path}")
 
-
 def plot_robustness(results: list, title: str, filename: str):
-    """
-    results: list of dicts {label, color, means, stds}
-    The fill_between shows ±1 std over N_EVAL_EPS evaluation episodes
-    (i.e. real variability at each wind level).
-    """
     fig, ax = plt.subplots(figsize=(9, 5))
     x = np.array(WIND_FORCES)
-
     for r in results:
         means = np.array(r["means"])
         stds  = np.array(r["stds"])
@@ -200,13 +149,8 @@ def plot_robustness(results: list, title: str, filename: str):
     ax.legend()
     save_fig(fig, filename)
 
-
-# Main 
-
 if __name__ == "__main__":
-
-    # single pendulum
-    print("\n=== Single Pendulum Robustness (seed 3) ===")
+    print("Single Pendulum Robustness (seed 3)")
     ENV_SP = "InvertedPendulum-v5"
 
     vanilla_agent  = load_vanilla( "checkpoints/vanilla_seed3_ep5000.pth",  ENV_SP)
@@ -233,8 +177,7 @@ if __name__ == "__main__":
                     "Robustness to Wind - Single Pendulum (seed 3)",
                     "09_robustness_single_pendulum.png")
 
-    # double pendulum
-    print("\n=== Double Pendulum Robustness (seed 3) ===")
+    print("\nDouble Pendulum Robustness (seed 3)")
     ENV_DP = "InvertedDoublePendulum-v5"
 
     dp_configs = [
@@ -267,5 +210,3 @@ if __name__ == "__main__":
         plot_robustness(dp_results,
                         "Robustness to Wind - Double Pendulum (seed 3)",
                         "10_robustness_double_pendulum.png")
-
-    print("\nDone! Check videos/ and plots/ directories.")
